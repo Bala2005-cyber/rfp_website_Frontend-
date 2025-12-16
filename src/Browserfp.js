@@ -27,7 +27,7 @@ const BrowseRFPs = () => {
 
     const getDefaultRfps = useCallback(() => {
         const deadlineIso = '2026-04-30';
-        const pdfPath = encodeURI(`${process.env.PUBLIC_URL}/REQUEST FOR PROPOSAL (RFP) (2).pdf`);
+        const pdfPath = encodeURI(`/REQUEST FOR PROPOSAL (RFP) (2).pdf`);
 
         const card1 = {
             _id: 'default-dmrc',
@@ -177,29 +177,12 @@ const BrowseRFPs = () => {
     const handleViewDocument = (rfp) => {
         if (!rfp.fileData && !rfp.fileUrl) return;
         
-        // Create a new blob URL for immediate PDF loading
         const fileUrl = rfp.fileUrl ? rfp.fileUrl : localStorageService.getFileUrl(rfp.fileData);
-        if (fileUrl) {
-            // Open in new window for better PDF viewing
-            const newWindow = window.open('', '_blank');
-            if (newWindow) {
-                newWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>${rfp.fileName || 'Document'}</title>
-                        <style>
-                            body { margin: 0; padding: 0; }
-                            embed { width: 100%; height: 100vh; }
-                        </style>
-                    </head>
-                    <body>
-                        <embed src="${fileUrl}" type="application/pdf" />
-                    </body>
-                    </html>
-                `);
-                newWindow.document.close();
-            }
+        if (!fileUrl) return;
+
+        const newWindow = window.open(fileUrl, '_blank', 'noopener,noreferrer');
+        if (!newWindow) {
+            window.location.href = fileUrl;
         }
     };
 
