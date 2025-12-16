@@ -211,21 +211,47 @@ class LocalStorageService {
   getRFPsByStatus(status) {
     const rfps = this.getRFPs();
     const now = new Date();
-    
-    return rfps.filter(rfp => {
+
+    const filtered = rfps.filter(rfp => {
       const deadline = new Date(rfp.deadline);
-      
+
       switch (status) {
         case 'recent':
-          return true; // All recent RFPs
+          return true;
         case 'completed':
           return deadline < now;
+        case 'open':
+          return (rfp.status || '').toLowerCase() === 'open';
         case 'extended':
-          return rfp.status === 'extended';
+          return (rfp.status || '').toLowerCase() === 'extended';
         default:
           return true;
       }
     });
+
+    // Sort by the most useful key per tab
+    const byUploadedAtDesc = (a, b) => {
+      const aTime = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+      const bTime = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+      return bTime - aTime;
+    };
+
+    const byDeadlineAsc = (a, b) => {
+      const aTime = a.deadline ? new Date(a.deadline).getTime() : 0;
+      const bTime = b.deadline ? new Date(b.deadline).getTime() : 0;
+      return aTime - bTime;
+    };
+
+    if (status === 'completed') {
+      // Show most recently completed first (closest past deadline)
+      return filtered.sort((a, b) => byDeadlineAsc(b, a));
+    }
+
+    if (status === 'recent' || status === 'extended') {
+      return filtered.sort(byUploadedAtDesc);
+    }
+
+    return filtered;
   }
 
   // Search RFPs
